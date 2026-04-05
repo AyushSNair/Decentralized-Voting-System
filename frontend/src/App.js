@@ -197,18 +197,49 @@ function App() {
     } catch (err) {
       console.error("Vote error:", err);
       setVotingFor(null);
-      // Parse common revert reasons
-      const reason = err?.reason || err?.message || "Transaction failed.";
+
+      // On Sepolia, revert reasons often come back as null.
+      // Re-check the chain to give the user a meaningful message.
+      const reason = err?.reason || err?.message || "";
+
+      if (reason.includes("user rejected") || reason.includes("ACTION_REJECTED")) {
+        showStatus("Transaction rejected in MetaMask.", "error");
+        return;
+      }
+
       if (reason.includes("already voted")) {
         showStatus("You have already voted!", "error");
         setHasVoted(true);
-      } else if (reason.includes("ended")) {
-        showStatus("Voting has ended.", "error");
-      } else if (reason.includes("user rejected")) {
-        showStatus("Transaction rejected in MetaMask.", "error");
-      } else {
-        showStatus(`Error: ${reason}`, "error");
+        return;
       }
+
+      if (reason.includes("ended")) {
+        showStatus("Voting has ended.", "error");
+        setIsActive(false);
+        return;
+      }
+
+      // CALL_EXCEPTION with null reason (common on Sepolia) — re-check chain state
+      if (err?.code === "CALL_EXCEPTION" || reason === "") {
+        try {
+          const stillActive = await contract.isVotingActive();
+          const alreadyVoted = await contract.hasVoted(account);
+          if (!stillActive) {
+            showStatus("⏰ Voting has ended — the 2-minute window closed before your transaction was confirmed. Please redeploy the contract to start a new round.", "error");
+            setIsActive(false);
+          } else if (alreadyVoted) {
+            showStatus("You have already voted!", "error");
+            setHasVoted(true);
+          } else {
+            showStatus("Transaction failed. Please try again.", "error");
+          }
+        } catch {
+          showStatus("Transaction failed on-chain. The voting window may have expired.", "error");
+        }
+        return;
+      }
+
+      showStatus(`Error: ${reason}`, "error");
     }
   };
 
