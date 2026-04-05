@@ -45,12 +45,7 @@ function CandidateCard({ candidate, totalVotes, onVote, hasVoted, isActive, voti
           ></div>
         </div>
 
-        <div className="vote-stats">
-          <span className="vote-count">
-            {Number(candidate.voteCount)} vote{Number(candidate.voteCount) !== 1 ? "s" : ""}
-          </span>
-          <span className="vote-percent">{percentage}%</span>
-        </div>
+
       </div>
 
       {/* Vote Button */}
