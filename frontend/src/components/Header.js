@@ -30,13 +30,17 @@ function Header({ account, isActive, remainingTime }) {
       </div>
 
       <div className="header-right">
-        {/* Voting countdown timer — only shown while voting is active */}
-        {isActive && (
-          <div className="timer-badge active">
-            <span className="pulse-dot"></span>
-            ⏱ {formatTime(remainingTime)} left
-          </div>
-        )}
+        {/* Voting countdown timer */}
+        <div className={`timer-badge ${isActive ? "active" : "ended"}`}>
+          {isActive ? (
+            <>
+              <span className="pulse-dot"></span>
+              ⏱ {formatTime(remainingTime)} left
+            </>
+          ) : (
+            "⛔ Voting Ended"
+          )}
+        </div>
 
         {/* Connected wallet address */}
         {account && (
