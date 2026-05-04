@@ -14,7 +14,7 @@ async function main() {
 
   // ── Deploy the contract ──────────────────────────────────────────────────
   // Voting window = 3 minutes from deployment time (short for demo purposes)
-  const DURATION_MINUTES = 6;
+  const DURATION_MINUTES = 4;
 
   const Voting = await hre.ethers.getContractFactory("Voting");
   const voting = await Voting.deploy(DURATION_MINUTES);
