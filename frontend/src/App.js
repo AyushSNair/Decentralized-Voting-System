@@ -26,7 +26,6 @@ function App() {
   const [contract, setContract]         = useState(null);       // Ethers contract instance
   const [candidates, setCandidates]     = useState([]);         // List of candidates
   const [hasVoted, setHasVoted]         = useState(false);      // Whether current user voted
-  const [isRegistered, setIsRegistered] = useState(false);      // Whether current user is a registered voter
   const [isActive, setIsActive]         = useState(false);      // Is voting window open?
   const [remainingTime, setRemainingTime] = useState(0);        // Seconds left
   const [votingFor, setVotingFor]       = useState(null);       // ID being voted on (pending tx)
@@ -75,16 +74,6 @@ function App() {
       setHasVoted(voted);
     } catch (err) {
       console.error("Error checking vote status:", err);
-    }
-  }, []);
-
-  // ── Check if connected account is a registered voter ──────────────────────
-  const checkIfRegistered = useCallback(async (contractInstance, userAddress) => {
-    try {
-      const registered = await contractInstance.isRegisteredVoter(userAddress);
-      setIsRegistered(registered);
-    } catch (err) {
-      console.error("Error checking registration status:", err);
     }
   }, []);
 
@@ -151,7 +140,6 @@ function App() {
         loadCandidates(contractInstance),
         loadVotingStatus(contractInstance),
         checkIfVoted(contractInstance, userAddress),
-        checkIfRegistered(contractInstance, userAddress),
       ]);
       setLoading(false);
 
@@ -174,10 +162,6 @@ function App() {
   const castVote = async (candidateId) => {
     if (!contract) {
       showStatus("Please connect your wallet first.", "error");
-      return;
-    }
-    if (!isRegistered) {
-      showStatus("Your wallet address is not registered to vote in this election.", "error");
       return;
     }
     if (hasVoted) {
@@ -226,12 +210,6 @@ function App() {
       if (reason.includes("already voted")) {
         showStatus("You have already voted!", "error");
         setHasVoted(true);
-        return;
-      }
-
-      if (reason.includes("not a registered voter")) {
-        showStatus("Your wallet is not registered to vote in this election.", "error");
-        setIsRegistered(false);
         return;
       }
 
