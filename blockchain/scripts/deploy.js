@@ -39,6 +39,15 @@ async function main() {
 
   console.log("\n🎉 Setup complete! Paste this into your frontend .env:");
   console.log(`   REACT_APP_CONTRACT_ADDRESS=${contractAddress}`);
+
+  // ── Register the deployer as a voter (demo) ──────────────────────────────
+  // In a real system, loop through a list of approved voter addresses.
+  console.log("\nRegistering deployer as a voter...");
+  const regTx = await voting.registerVoter(deployer.address);
+  await regTx.wait();
+  console.log(`   ✓ Registered voter: ${deployer.address}`);
+  console.log("\n✅ Done! The deployer wallet can now vote.");
+  console.log("   To register more voters, call registerVoter(<address>) from the owner wallet.");
 }
 
 main().catch((error) => {

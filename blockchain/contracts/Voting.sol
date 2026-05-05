@@ -28,6 +28,9 @@ contract Voting {
     // Mapping to track who has already voted (address => bool)
     mapping(address => bool) public hasVoted;
 
+    // Mapping to track registered (eligible) voters
+    mapping(address => bool) public isRegisteredVoter;
+
     // ─── Events ────────────────────────────────────────────────────────────────
 
     // Emitted when a new candidate is added
@@ -35,6 +38,9 @@ contract Voting {
 
     // Emitted when a vote is cast
     event VoteCast(address indexed voter, uint256 indexed candidateId);
+
+    // Emitted when a voter is registered
+    event VoterRegistered(address indexed voter);
 
     // ─── Modifiers ─────────────────────────────────────────────────────────────
 
@@ -51,6 +57,12 @@ contract Voting {
         _;
     }
 
+    // Restrict voting to registered voters only
+    modifier onlyRegistered() {
+        require(isRegisteredVoter[msg.sender], "You are not a registered voter.");
+        _;
+    }
+
     // ─── Constructor ───────────────────────────────────────────────────────────
 
     /**
@@ -63,6 +75,17 @@ contract Voting {
     }
 
     // ─── Admin Functions ───────────────────────────────────────────────────────
+
+    /**
+     * @notice Register a voter address so they are eligible to vote.
+     *         Only the owner (admin) can register voters.
+     * @param _voter  The wallet address to register
+     */
+    function registerVoter(address _voter) public onlyOwner {
+        require(!isRegisteredVoter[_voter], "Voter already registered.");
+        isRegisteredVoter[_voter] = true;
+        emit VoterRegistered(_voter);
+    }
 
     /**
      * @notice Add a new candidate. Only the owner can call this.
@@ -84,7 +107,7 @@ contract Voting {
      * @notice Cast a vote for a candidate by their ID.
      * @param _candidateId  The index of the candidate in the candidates array
      */
-    function vote(uint256 _candidateId) public votingActive {
+    function vote(uint256 _candidateId) public votingActive onlyRegistered {
         // Prevent double voting
         require(!hasVoted[msg.sender], "You have already voted.");
 
